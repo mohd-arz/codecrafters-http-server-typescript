@@ -9,9 +9,16 @@ const server = net.createServer((socket) => {
     const request = data.toString();
     const [requestLine] = request.split('\r\n');
     const [method,url,version] =requestLine.split(' ');
+    const regex = /\/echo\/\w*/gi;
     if(url == '/'){
       socket.write("HTTP/1.1 200 OK\r\n\r\n")
-    }else{
+    } else if(regex.test(url)){
+      let data = url.split('/')[2];
+      let length = Buffer.byteLength(data);
+      socket.write("HTTP/1.1 200 OK\r\nContent-Type:text/plain\r\nContent-Length:"+length+"\r\n\r\n"+data+"\r\n")
+  }
+  else{
+    console.log('came inside not found',url)
       socket.write("HTTP/1.1 404 Not Found\r\n\r\n")
     }
     socket.end();
