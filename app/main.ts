@@ -7,8 +7,9 @@ console.log("Logs from your program will appear here!");
 const server = net.createServer((socket) => {
   socket.on("data",(data)=>{
     const request = data.toString();
-    const [requestLine] = request.split('\r\n');
-    const [method,url,version] =requestLine.split(' ');
+    const requestLine = request.split('\r\n');
+    console.log(requestLine)
+    const [method,url,version] =requestLine[0].split(' ');
     const regex = /\/echo\/\w*/gi;
     if(url == '/'){
       socket.write("HTTP/1.1 200 OK\r\n\r\n")
@@ -16,6 +17,15 @@ const server = net.createServer((socket) => {
       let data = url.split('/')[2];
       let length = Buffer.byteLength(data);
       socket.write("HTTP/1.1 200 OK\r\nContent-Type:text/plain\r\nContent-Length:"+length+"\r\n\r\n"+data+"\r\n")
+  }else if(url == '/user-agent'){
+    const userAgent = requestLine.find(line=>{
+      return line.match('User-Agent')
+  })
+  if(userAgent){
+    const userAgentValue = userAgent.split(':')[1].trim();
+    console.log('userAgent and value',userAgent,userAgentValue);
+    socket.write("HTTP/1.1 200 OK\r\nContent-Type:text/plain\r\nContent-Length:" + userAgentValue.length + "\r\n\r\n" + userAgentValue + "\r\n");
+  }
   }
   else{
     console.log('came inside not found',url)
