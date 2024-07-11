@@ -34,8 +34,8 @@ const server = net.createServer((socket) => {
       }
     }else if(fileRegex.test(url)){
       let data = url.split('/')[2];
-
-      const index = process.argv.indexOf('--directory');
+      // let p = path.join('tmp',data);
+        const index = process.argv.indexOf('--directory');
       let middlePath = null;
       if(index > -1 && index + 1 < process.argv.length){
         middlePath = process.argv[index + 1];
@@ -45,6 +45,20 @@ const server = net.createServer((socket) => {
         process.exit(1);
       }
       let p = path.join(middlePath,data);
+      if(method=='POST'){
+        const body = requestLine[requestLine.length - 1];
+        if(body){
+          let file = fs.writeFileSync(p,body);
+          console.log(file)
+        }
+        console.log('body ',body)
+        console.log('request' ,requestLine)
+        socket.write('HTTP/1.1 201 Created\r\n\r\n');
+        socket.end();
+        return;
+      }
+
+    
 
       if(fs.existsSync(p)){
         let file = fs.readFileSync(p,'utf-8');
