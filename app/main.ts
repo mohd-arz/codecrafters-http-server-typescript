@@ -18,6 +18,18 @@ const server = net.createServer((socket) => {
       socket.write("HTTP/1.1 200 OK\r\n\r\n")
       return socket.end();
     }else if(regex.test(url)){
+      let compression = requestLine.find(line=>{
+        return line.match('Accept-Encoding');
+      })
+      if(compression){
+        if(compression.split(':')[1].trim()=='gzip'){
+          socket.write("HTTP/1.1 200 OK\r\nContent-Encoding:gzip\r\nContent-Type:text/plain\r\n\r\n");
+          return socket.end();
+        }else{
+          socket.write("HTTP/1.1 200 OK\r\nContent-Type:text/plain\r\n\r\n");
+          return socket.end();
+        }
+      }
       let data = url.split('/')[2];
       let length = Buffer.byteLength(data);
       socket.write("HTTP/1.1 200 OK\r\nContent-Type:text/plain\r\nContent-Length:"+length+"\r\n\r\n"+data+"\r\n")
