@@ -22,7 +22,9 @@ const server = net.createServer((socket) => {
         return line.match('Accept-Encoding');
       })
       if(compression){
-        if(compression.split(':')[1].trim()=='gzip'){
+        let compressionTypes = compression.split(':')[1].split(',');
+        console.log('compression types',compressionTypes);
+        if(compressionTypes.find(type=>type.trim()=='gzip')){
           socket.write("HTTP/1.1 200 OK\r\nContent-Encoding:gzip\r\nContent-Type:text/plain\r\n\r\n");
           return socket.end();
         }else{
