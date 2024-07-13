@@ -1,7 +1,7 @@
 import * as net from "net";
 import fs from "fs";
 import path from "path";
-
+import zlib from "zlib";
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
 
@@ -18,21 +18,25 @@ const server = net.createServer((socket) => {
       socket.write("HTTP/1.1 200 OK\r\n\r\n")
       return socket.end();
     }else if(regex.test(url)){
+      let data = url.split('/')[2];
       let compression = requestLine.find(line=>{
         return line.match('Accept-Encoding');
       })
       if(compression){
         let compressionTypes = compression.split(':')[1].split(',');
         console.log('compression types',compressionTypes);
+        console.log(compressionTypes.find(type=>type.trim()=='gzip'));
+        
         if(compressionTypes.find(type=>type.trim()=='gzip')){
-          socket.write("HTTP/1.1 200 OK\r\nContent-Encoding:gzip\r\nContent-Type:text/plain\r\n\r\n");
+          let  gzi = zlib.gzipSync(data);
+          socket.write("HTTP/1.1 200 OK\r\nContent-Encoding:gzip\r\nContent-Type:text/plain\r\nContent-Length:"+gzi.length+"\r\n\r\n");
+          socket.write(gzi)
           return socket.end();
         }else{
           socket.write("HTTP/1.1 200 OK\r\nContent-Type:text/plain\r\n\r\n");
           return socket.end();
         }
       }
-      let data = url.split('/')[2];
       let length = Buffer.byteLength(data);
       socket.write("HTTP/1.1 200 OK\r\nContent-Type:text/plain\r\nContent-Length:"+length+"\r\n\r\n"+data+"\r\n")
       return socket.end();
